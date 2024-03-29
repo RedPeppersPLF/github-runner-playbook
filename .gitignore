@@ -1,0 +1,23 @@
+# Ansible artifacts
+ansible.retry
+*.retry
+*.log
+
+# Ansible inventory
+inventories/runners/hosts
+
+# Ansible cache
+.ansible/
+
+# Virtual environments
+venv/
+env/
+
+# Editor and IDE files
+.vscode/
+.idea/
+
+# System and temporary files
+*.swp
+*~
+.DS_Store

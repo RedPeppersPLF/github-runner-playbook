@@ -1,0 +1,89 @@
+- name: Check if runner is already configured
+  ansible.builtin.stat:
+    path: $HOME/actions-runner/.runner
+  register: runner_configured
+
+- name: Download the GitHub Actions runner package
+  when: not runner_configured.stat.exists
+  ansible.builtin.get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{ github_runner_binary_version }}/actions-runner-{{ runner_arch }}-{{ github_runner_binary_version }}.tar.gz"
+    dest: $HOME/actions-runner.tar.gz
+    mode: '0755'
+    checksum: sha256:6c726a118bbe02cd32e222f890e1e476567bf299353a96886ba75b423c1137b5
+
+- name: Creates the directory for the GitHub Actions runner
+  when: not runner_configured.stat.exists
+  ansible.builtin.file:
+    path: $HOME/actions-runner
+    mode: '0755'
+    state: directory
+
+- name: Unarchive the GitHub Actions runner package
+  when: not runner_configured.stat.exists
+  ansible.builtin.unarchive:
+    src: $HOME/actions-runner.tar.gz
+    dest: $HOME/actions-runner
+    remote_src: true
+
+- name: Configure the GitHub Actions runner
+  when: not runner_configured.stat.exists
+  ansible.builtin.command:
+    cmd: ./config.sh --url https://github.com/{{ relative_github_repo_path }} --token {{ github_token }}
+  args:
+    chdir: $HOME/actions-runner
+    stdin: |
+      {{ runner_group }}
+      {{ runner_name }}
+      {{ runner_labels }}
+      {{ runner_work_folder }}
+
+- name: Install the GitHub Actions runner service
+  when: not runner_configured.stat.exists
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  ansible.builtin.command:
+    cmd: ./svc.sh install
+  args:
+    chdir: /home/{{ runner_user }}/actions-runner
+
+- name: Configure the GitHub Actions runner service
+  when: not runner_configured.stat.exists
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  ansible.builtin.replace:
+    path: /etc/systemd/system/actions.runner.{{ relative_github_repo_path | replace('/', '-') }}.ansible-bastion.service
+    regexp: '^User={{ ansible_user }}$'
+    replace: 'User={{ runner_user }}'
+
+- name: Service daemon reload
+  when: not runner_configured.stat.exists
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Start the GitHub Actions runner service
+  when: not runner_configured.stat.exists
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  ansible.builtin.command:
+    cmd: ./svc.sh start
+  args:
+    chdir: /home/{{ runner_user }}/actions-runner
+
+- name: Restart the GitHub Actions runner service
+  when: runner_configured.stat.exists
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  loop:
+    - stop
+    - start
+  ansible.builtin.command:
+    cmd: ./svc.sh {{ item }}
+  args:
+    chdir: /home/{{ runner_user }}/actions-runner

@@ -1,0 +1,15 @@
+- name: Setup GitHub Runner Environment
+  hosts: runners
+  become: true
+  gather_facts: false
+  roles:
+    - install-dependencies
+    - configure-runner-user
+
+- name: Config Runner
+  hosts: runners
+  become_user: "{{ runner_user }}"
+  become_method: ansible.builtin.sudo
+  become: true
+  roles:
+    - configure-runner

@@ -1,0 +1,6 @@
+- name: Install Common Debian Packages
+  ansible.builtin.apt:
+    name:
+      - net-tools
+      - unzip
+    state: present
