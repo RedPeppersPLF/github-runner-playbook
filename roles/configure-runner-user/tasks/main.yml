@@ -2,16 +2,17 @@
   ansible.builtin.getent:
     database: passwd
     key: "{{ runner_user }}"
-  register: user_exists
 
 - name: Create the user {{ runner_user }}
-  when: user_exists == {}
+  when:
+  - "runner_user not in getent_passwd"
   ansible.builtin.user:
     name: "{{ runner_user }}"
     password: "{{ runner_password | password_hash('sha512') }}"
 
 - name: Add the user {{ runner_user }} the group 'sudo' to the user's groups
-  when: user_exists == {}
+  when:
+  - "runner_user not in getent_passwd"
   ansible.builtin.user:
     name: "{{ runner_user }}"
     shell: /bin/bash

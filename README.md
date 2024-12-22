@@ -7,6 +7,8 @@ This repository contains an Ansible playbook. It automates the deployment and co
 Before running this playbook, ensure that the following prerequisites are met on your computer:
 
 - ansible
+- python
+- paramiko
 
 Before running this playbook, ensure that the following prerequisites are met on your machine:
 
@@ -22,7 +24,7 @@ To use this playbook, follow these steps:
 4. Run the playbook using the following command:
 
   ```shell
-  ansible-playbook -k -i inventories/runners runners.yml
+  ansible-playbook -c paramiko-kK -i inventories/runners runners.yml
   ```
 
 ## Troubleshooting

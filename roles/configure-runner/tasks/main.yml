@@ -9,7 +9,7 @@
     url: "https://github.com/actions/runner/releases/download/v{{ github_runner_binary_version }}/actions-runner-{{ runner_arch }}-{{ github_runner_binary_version }}.tar.gz"
     dest: $HOME/actions-runner.tar.gz
     mode: '0755'
-    checksum: sha256:6c726a118bbe02cd32e222f890e1e476567bf299353a96886ba75b423c1137b5
+    checksum: "sha256:{{ github_runner_binary_checksum }}"
 
 - name: Creates the directory for the GitHub Actions runner
   when: not runner_configured.stat.exists
